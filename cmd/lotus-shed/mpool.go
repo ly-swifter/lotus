@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/urfave/cli/v2"
 
@@ -28,6 +29,11 @@ var minerSelectMsgsCmd = &cli.Command{
 			Name:  "ticket-quality",
 			Value: 1,
 		},
+		&cli.BoolFlag{
+			Name:  "log-stats",
+			Value: false,
+			Usage: "Enable logging of message selection stats",
+		},
 	},
 	Action: func(cctx *cli.Context) error {
 		api, closer, err := lcli.GetFullNodeAPI(cctx)
@@ -43,9 +49,32 @@ var minerSelectMsgsCmd = &cli.Command{
 			return err
 		}
 
+		// Start timing if log-stats flag is set
+		var start time.Time
+		if cctx.Bool("log-stats") {
+			start = time.Now()
+		}
+
 		msgs, err := api.MpoolSelect(ctx, head.Key(), cctx.Float64("ticket-quality"))
 		if err != nil {
 			return err
+		}
+
+		pendingMsgs, err := api.MpoolPending(ctx, types.EmptyTSK)
+		if err != nil {
+			return err
+		}
+		mpoolSize := len(pendingMsgs)
+
+		// Log the stats if log-stats flag is set
+		if cctx.Bool("log-stats") {
+			// Calculate duration
+			duration := time.Since(start)
+
+			// Log the duration, size of the mempool, and number of selected messages
+			fmt.Printf("Message selection took %s\n", duration)
+			fmt.Printf("Size of the mempool: %d\n", mpoolSize)
+			fmt.Printf("Number of selected messages: %d\n", len(msgs))
 		}
 
 		var totalGas int64
