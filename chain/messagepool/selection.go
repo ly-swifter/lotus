@@ -793,12 +793,15 @@ func (mp *MessagePool) createMessageChains(actor address.Address, mset map[uint6
 	//   cannot exceed the block limit; drop all messages that exceed the limit
 	// - the total gasReward cannot exceed the actor's balance; drop all messages that exceed
 	//   the balance
+	start = time.Now()
 	a, err := mp.api.GetActorAfter(actor, ts)
 	if err != nil {
 		log.Errorf("failed to load actor state, not building chain for %s: %v", actor, err)
 		return nil
 	}
+	log.Debugf("Time taken to load actor state: %v", time.Since(start))
 
+	start = time.Now()
 	curNonce := a.Nonce
 	balance := a.Balance.Int
 	gasLimit := int64(0)
@@ -843,6 +846,7 @@ func (mp *MessagePool) createMessageChains(actor address.Address, mset map[uint6
 		gasReward := mp.getGasReward(m, baseFee)
 		rewards = append(rewards, gasReward)
 	}
+	log.Debugf("Time taken to process messages: %v", time.Since(start))
 
 	// check we have a sane set of messages to construct the chains
 	if i > skip {
