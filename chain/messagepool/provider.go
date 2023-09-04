@@ -3,6 +3,10 @@ package messagepool
 import (
 	"context"
 	"errors"
+	"fmt"
+	"os"
+	"runtime/pprof"
+	"sync"
 	"time"
 
 	"github.com/ipfs/go-cid"
@@ -22,6 +26,8 @@ var (
 	HeadChangeCoalesceMinDelay      = 2 * time.Second
 	HeadChangeCoalesceMaxDelay      = 6 * time.Second
 	HeadChangeCoalesceMergeInterval = time.Second
+	profileCounter                  int
+	profileMutex                    sync.Mutex
 )
 
 type Provider interface {
@@ -105,6 +111,20 @@ func (mpp *mpoolProvider) GetActorBefore(addr address.Address, ts *types.TipSet)
 }
 
 func (mpp *mpoolProvider) GetActorAfter(addr address.Address, ts *types.TipSet) (*types.Actor, error) {
+	profileMutex.Lock()
+	profileCounter++
+	f, err := os.Create(fmt.Sprintf("cpu_%d.pprof", profileCounter))
+	profileMutex.Unlock()
+	if err != nil {
+		log.Fatal("could not create CPU profile: ", err)
+	}
+	if err := pprof.StartCPUProfile(f); err != nil {
+		log.Fatal("could not start CPU profile: ", err)
+	}
+	defer pprof.StopCPUProfile()
+
+	start := time.Now()
+
 	if mpp.IsLite() {
 		return mpp.getActorLite(addr, ts)
 	}
@@ -117,6 +137,13 @@ func (mpp *mpoolProvider) GetActorAfter(addr address.Address, ts *types.TipSet) 
 	if err != nil {
 		return nil, xerrors.Errorf("failed to load state tree: %w", err)
 	}
+
+	elapsed := time.Since(start)
+	if elapsed <= 2*time.Second {
+		// If the execution time didn't exceed 2 seconds, remove the profile.
+		os.Remove(fmt.Sprintf("cpu_%d.pprof", profileCounter))
+	}
+
 	return st.GetActor(addr)
 }
 
