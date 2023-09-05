@@ -772,19 +772,15 @@ func (*MessagePool) getGasPerf(gasReward *big.Int, gasLimit int64) float64 {
 
 func (mp *MessagePool) createMessageChains(actor address.Address, mset map[uint64]*types.SignedMessage, baseFee types.BigInt, ts *types.TipSet) []*msgChain {
 	// collect all messages
-	start := time.Now()
 	msgs := make([]*types.SignedMessage, 0, len(mset))
 	for _, m := range mset {
 		msgs = append(msgs, m)
 	}
-	log.Debugf("Time taken to collect all messages: %v", time.Since(start))
 
 	// sort by nonce
-	start = time.Now()
 	sort.Slice(msgs, func(i, j int) bool {
 		return msgs[i].Message.Nonce < msgs[j].Message.Nonce
 	})
-	log.Debugf("Time taken to sort by nonce: %v", time.Since(start))
 
 	// sanity checks:
 	// - there can be no gaps in nonces, starting from the current actor nonce
@@ -881,7 +877,6 @@ func (mp *MessagePool) createMessageChains(actor address.Address, mset map[uint6
 	}
 
 	// create the individual chains
-	start = time.Now()
 	for i, m := range msgs {
 		if curChain == nil {
 			curChain = newChain(m, i)
@@ -904,11 +899,9 @@ func (mp *MessagePool) createMessageChains(actor address.Address, mset map[uint6
 			curChain.gasPerf = gasPerf
 		}
 	}
-	log.Debugf("Time taken to create individual chains: %v", time.Since(start))
 	chains = append(chains, curChain)
 
 	// merge chains to maintain the invariant
-	start = time.Now()
 	for {
 		merged := 0
 
@@ -936,10 +929,8 @@ func (mp *MessagePool) createMessageChains(actor address.Address, mset map[uint6
 		}
 		chains = newChains
 	}
-	log.Debugf("Time taken to merge chains: %v", time.Since(start))
 
 	// link dependent chains
-	start = time.Now()
 	for i := 0; i < len(chains)-1; i++ {
 		chains[i].next = chains[i+1]
 	}
@@ -947,7 +938,6 @@ func (mp *MessagePool) createMessageChains(actor address.Address, mset map[uint6
 	for i := len(chains) - 1; i > 0; i-- {
 		chains[i].prev = chains[i-1]
 	}
-	log.Debugf("Time taken to link dependent chains: %v", time.Since(start))
 
 	return chains
 }
