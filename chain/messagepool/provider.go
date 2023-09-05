@@ -105,7 +105,10 @@ func (mpp *mpoolProvider) GetActorBefore(addr address.Address, ts *types.TipSet)
 }
 
 func (mpp *mpoolProvider) GetActorAfter(addr address.Address, ts *types.TipSet) (*types.Actor, error) {
+	start := time.Now()
+
 	if mpp.IsLite() {
+		log.Debugf("IsLite check took %s", time.Since(start))
 		return mpp.getActorLite(addr, ts)
 	}
 
@@ -113,11 +116,20 @@ func (mpp *mpoolProvider) GetActorAfter(addr address.Address, ts *types.TipSet) 
 	if err != nil {
 		return nil, xerrors.Errorf("computing tipset state for GetActor: %w", err)
 	}
+	log.Debugf("TipSetState took %s", time.Since(start))
+	start = time.Now()
+
 	st, err := mpp.sm.StateTree(stcid)
 	if err != nil {
 		return nil, xerrors.Errorf("failed to load state tree: %w", err)
 	}
-	return st.GetActor(addr)
+	log.Debugf("StateTree took %s", time.Since(start))
+	start = time.Now()
+
+	actor, err := st.GetActor(addr)
+	log.Debugf("GetActor took %s", time.Since(start))
+
+	return actor, err
 }
 
 func (mpp *mpoolProvider) StateDeterministicAddressAtFinality(ctx context.Context, addr address.Address, ts *types.TipSet) (address.Address, error) {
