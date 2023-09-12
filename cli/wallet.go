@@ -35,6 +35,7 @@ var walletCmd = &cli.Command{
 		walletBalance,
 		walletExport,
 		walletImport,
+		walletImportMnemonic,
 		walletGetDefault,
 		walletSetDefault,
 		walletSign,
@@ -352,6 +353,123 @@ var walletImport = &cli.Command{
 				if err != nil {
 					return err
 				}
+				fmt.Println()
+			} else {
+				reader := bufio.NewReader(os.Stdin)
+				indata, err := reader.ReadBytes('\n')
+				if err != nil {
+					return err
+				}
+				inpdata = indata
+			}
+
+		} else {
+			fdata, err := os.ReadFile(cctx.Args().First())
+			if err != nil {
+				return err
+			}
+			inpdata = fdata
+		}
+
+		var ki types.KeyInfo
+		switch cctx.String("format") {
+		case "hex-lotus":
+			data, err := hex.DecodeString(strings.TrimSpace(string(inpdata)))
+			if err != nil {
+				return err
+			}
+
+			if err := json.Unmarshal(data, &ki); err != nil {
+				return err
+			}
+		case "json-lotus":
+			if err := json.Unmarshal(inpdata, &ki); err != nil {
+				return err
+			}
+		case "gfc-json":
+			var f struct {
+				KeyInfo []struct {
+					PrivateKey []byte
+					SigType    int
+				}
+			}
+			if err := json.Unmarshal(inpdata, &f); err != nil {
+				return xerrors.Errorf("failed to parse go-filecoin key: %s", err)
+			}
+
+			gk := f.KeyInfo[0]
+			ki.PrivateKey = gk.PrivateKey
+			switch gk.SigType {
+			case 1:
+				ki.Type = types.KTSecp256k1
+			case 2:
+				ki.Type = types.KTBLS
+			default:
+				return fmt.Errorf("unrecognized key type: %d", gk.SigType)
+			}
+		default:
+			return fmt.Errorf("unrecognized format: %s", cctx.String("format"))
+		}
+
+		addr, err := api.WalletImport(ctx, &ki)
+		if err != nil {
+			return err
+		}
+
+		if cctx.Bool("as-default") {
+			if err := api.WalletSetDefault(ctx, addr); err != nil {
+				return fmt.Errorf("failed to set default key: %w", err)
+			}
+		}
+
+		fmt.Printf("imported key %s successfully!\n", addr)
+		return nil
+	},
+}
+
+var walletImportMnemonic = &cli.Command{
+	Name:      "importMnemonic",
+	Usage:     "import mnemonic words",
+	ArgsUsage: "[<path> (optional, will read from stdin if omitted)]",
+	Flags: []cli.Flag{
+		&cli.StringFlag{
+			Name:  "format",
+			Usage: "specify input format for key",
+			Value: "hex-lotus",
+		},
+		&cli.BoolFlag{
+			Name:  "as-default",
+			Usage: "import the given key as your new default key",
+		},
+	},
+	Action: func(cctx *cli.Context) error {
+		api, closer, err := GetFullNodeAPI(cctx)
+		if err != nil {
+			return err
+		}
+		defer closer()
+		ctx := ReqContext(cctx)
+
+		var inpdata []byte
+		if !cctx.Args().Present() || cctx.Args().First() == "-" {
+			if term.IsTerminal(int(os.Stdin.Fd())) {
+				fmt.Print("Enter private key(not display in the terminal): ")
+
+				sigCh := make(chan os.Signal, 1)
+				// Notify the channel when SIGINT is received
+				signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+
+				go func() {
+					<-sigCh
+					fmt.Println("\nInterrupt signal received. Exiting...")
+					os.Exit(1)
+				}()
+
+				inpdata, err = term.ReadPassword(int(os.Stdin.Fd()))
+				if err != nil {
+					return err
+				}
+				fmt.Printf("inpdata: %s\n", inpdata)
 				fmt.Println()
 			} else {
 				reader := bufio.NewReader(os.Stdin)
