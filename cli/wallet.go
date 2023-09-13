@@ -21,9 +21,11 @@ import (
 	"github.com/filecoin-project/go-state-types/crypto"
 	"github.com/filecoin-project/go-state-types/network"
 
+	crypto1 "github.com/filecoin-project/go-crypto"
 	"github.com/filecoin-project/lotus/build"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/filecoin-project/lotus/lib/tablewriter"
+	"github.com/tyler-smith/go-bip39"
 )
 
 var walletCmd = &cli.Command{
@@ -35,6 +37,7 @@ var walletCmd = &cli.Command{
 		walletBalance,
 		walletExport,
 		walletImport,
+		walletGenerateMnemonic,
 		walletImportMnemonic,
 		walletGetDefault,
 		walletSetDefault,
@@ -427,16 +430,25 @@ var walletImport = &cli.Command{
 	},
 }
 
+var walletGenerateMnemonic = &cli.Command{
+	Name:  "generateMnemonic",
+	Usage: "generate mnemonic words",
+	Action: func(cctx *cli.Context) error {
+		_ = ReqContext(cctx)
+
+		entropy, _ := bip39.NewEntropy(256)
+		mnemonic, _ := bip39.NewMnemonic(entropy)
+
+		fmt.Printf("mnemonic: %s\n", mnemonic)
+		return nil
+	},
+}
+
 var walletImportMnemonic = &cli.Command{
 	Name:      "importMnemonic",
 	Usage:     "import mnemonic words",
 	ArgsUsage: "[<path> (optional, will read from stdin if omitted)]",
 	Flags: []cli.Flag{
-		&cli.StringFlag{
-			Name:  "format",
-			Usage: "specify input format for key",
-			Value: "hex-lotus",
-		},
 		&cli.BoolFlag{
 			Name:  "as-default",
 			Usage: "import the given key as your new default key",
@@ -451,6 +463,7 @@ var walletImportMnemonic = &cli.Command{
 		ctx := ReqContext(cctx)
 
 		var inpdata []byte
+		var private []byte
 		if !cctx.Args().Present() || cctx.Args().First() == "-" {
 			if term.IsTerminal(int(os.Stdin.Fd())) {
 				fmt.Print("Enter private key(not display in the terminal): ")
@@ -469,63 +482,67 @@ var walletImportMnemonic = &cli.Command{
 				if err != nil {
 					return err
 				}
+
+				fmt.Println()
 				fmt.Printf("inpdata: %s\n", inpdata)
 				fmt.Println()
-			} else {
-				reader := bufio.NewReader(os.Stdin)
-				indata, err := reader.ReadBytes('\n')
+
+				mnemonic := strings.TrimSpace(string(inpdata))
+
+				// Generate a Bip32 HD wallet for the mnemonic and a user supplied password
+				seed := bip39.NewSeed(mnemonic, "")
+				fmt.Println("seed: ", seed)
+
+				// seedByte := [32]byte{}
+				// for i, v := range seed {
+				// 	seedByte[i] = v
+				// }
+
+				pri, err := crypto1.GenerateKeyFromSeed(bytes.NewReader(seed))
 				if err != nil {
 					return err
 				}
-				inpdata = indata
-			}
+				private = pri
 
-		} else {
-			fdata, err := os.ReadFile(cctx.Args().First())
-			if err != nil {
-				return err
+				pub := crypto1.PublicKey(private)
+
+				// pri := ffi.PrivateKeyGenerateWithSeed(seedByte)
+				// privateKey, _ := bip32.NewMasterKey(seed)
+				// publicKey := privateKey.PublicKey()
+
+				fmt.Println("Mnemonic: ", mnemonic)
+				fmt.Println("Master private key: ", private)
+				fmt.Println("Master public key: ", pub)
 			}
-			inpdata = fdata
+			//  else {
+			// 	reader := bufio.NewReader(os.Stdin)
+			// 	indata, err := reader.ReadBytes('\n')
+			// 	if err != nil {
+			// 		return err
+			// 	}
+			// 	inpdata = indata
+			// }
 		}
 
+		mix, err := mixUp(private)
+		if err != nil {
+			return err
+		}
+
+		// innn := strings.TrimSpace(string(mix))
+
+		// fmt.Println("innn data: ", innn)
+
 		var ki types.KeyInfo
-		switch cctx.String("format") {
-		case "hex-lotus":
-			data, err := hex.DecodeString(strings.TrimSpace(string(inpdata)))
-			if err != nil {
-				return err
-			}
+		// data, err := hex.DecodeString(innn)
+		// if err != nil {
+		// 	return err
+		// }
 
-			if err := json.Unmarshal(data, &ki); err != nil {
-				return err
-			}
-		case "json-lotus":
-			if err := json.Unmarshal(inpdata, &ki); err != nil {
-				return err
-			}
-		case "gfc-json":
-			var f struct {
-				KeyInfo []struct {
-					PrivateKey []byte
-					SigType    int
-				}
-			}
-			if err := json.Unmarshal(inpdata, &f); err != nil {
-				return xerrors.Errorf("failed to parse go-filecoin key: %s", err)
-			}
+		// fmt.Println("decode data: ", data)
 
-			gk := f.KeyInfo[0]
-			ki.PrivateKey = gk.PrivateKey
-			switch gk.SigType {
-			case 1:
-				ki.Type = types.KTSecp256k1
-			case 2:
-				ki.Type = types.KTBLS
-			default:
-				return fmt.Errorf("unrecognized key type: %d", gk.SigType)
-			}
-		default:
-			return fmt.Errorf("unrecognized format: %s", cctx.String("format"))
+		if err := json.Unmarshal(mix, &ki); err != nil {
+			return err
 		}
 
 		addr, err := api.WalletImport(ctx, &ki)
@@ -542,6 +559,11 @@ var walletImportMnemonic = &cli.Command{
 		fmt.Printf("imported key %s successfully!\n", addr)
 		return nil
 	},
+}
+
+func mixUp(origin []byte) ([]byte, error) {
+	// var mixupGap = 7
+	return origin, nil
 }
 
 var walletSign = &cli.Command{

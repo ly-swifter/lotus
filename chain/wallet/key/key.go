@@ -1,6 +1,8 @@
 package key
 
 import (
+	"fmt"
+
 	"golang.org/x/xerrors"
 
 	"github.com/filecoin-project/go-address"
@@ -44,6 +46,9 @@ func NewKey(keyinfo types.KeyInfo) (*Key, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println("key.privateKey ", k.PrivateKey)
+	fmt.Println("key.publicKey ", k.PublicKey)
 
 	switch k.Type {
 	case types.KTSecp256k1:
