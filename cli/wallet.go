@@ -21,10 +21,10 @@ import (
 	"github.com/filecoin-project/go-state-types/crypto"
 	"github.com/filecoin-project/go-state-types/network"
 
-	crypto1 "github.com/filecoin-project/go-crypto"
 	"github.com/filecoin-project/lotus/build"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/filecoin-project/lotus/lib/tablewriter"
+	"github.com/llifezou/hdwallet"
 	"github.com/tyler-smith/go-bip39"
 )
 
@@ -304,6 +304,8 @@ var walletExport = &cli.Command{
 			return err
 		}
 
+		fmt.Printf("export ki: %+v\n", ki)
+
 		b, err := json.Marshal(ki)
 		if err != nil {
 			return err
@@ -436,8 +438,13 @@ var walletGenerateMnemonic = &cli.Command{
 	Action: func(cctx *cli.Context) error {
 		_ = ReqContext(cctx)
 
-		entropy, _ := bip39.NewEntropy(256)
-		mnemonic, _ := bip39.NewMnemonic(entropy)
+		// entropy, _ := bip39.NewEntropy(256)
+		// mnemonic, _ := bip39.NewMnemonic(entropy)
+
+		mnemonic, err := hdwallet.NewMnemonic(hdwallet.Mnemonic24)
+		if err != nil {
+			return err
+		}
 
 		fmt.Printf("mnemonic: %s\n", mnemonic)
 		return nil
@@ -484,44 +491,22 @@ var walletImportMnemonic = &cli.Command{
 				}
 
 				fmt.Println()
-				fmt.Printf("inpdata: %s\n", inpdata)
+				fmt.Printf("inpdata: %s\n", string(inpdata))
 				fmt.Println()
 
 				mnemonic := strings.TrimSpace(string(inpdata))
 
 				// Generate a Bip32 HD wallet for the mnemonic and a user supplied password
 				seed := bip39.NewSeed(mnemonic, "")
-				fmt.Println("seed: ", seed)
+				fmt.Printf("seed: %s", hex.EncodeToString(seed))
 
-				// seedByte := [32]byte{}
-				// for i, v := range seed {
-				// 	seedByte[i] = v
-				// }
-
-				pri, err := crypto1.GenerateKeyFromSeed(bytes.NewReader(seed))
+				pri, err := hdwallet.GetExtendSeedFromPath(hdwallet.FilPath(0), seed)
 				if err != nil {
 					return err
 				}
+
 				private = pri
-
-				pub := crypto1.PublicKey(private)
-
-				// pri := ffi.PrivateKeyGenerateWithSeed(seedByte)
-				// privateKey, _ := bip32.NewMasterKey(seed)
-				// publicKey := privateKey.PublicKey()
-
-				fmt.Println("Mnemonic: ", mnemonic)
-				fmt.Println("Master private key: ", private)
-				fmt.Println("Master public key: ", pub)
 			}
-			//  else {
-			// 	reader := bufio.NewReader(os.Stdin)
-			// 	indata, err := reader.ReadBytes('\n')
-			// 	if err != nil {
-			// 		return err
-			// 	}
-			// 	inpdata = indata
-			// }
 		}
 
 		mix, err := mixUp(private)
@@ -529,21 +514,13 @@ var walletImportMnemonic = &cli.Command{
 			return err
 		}
 
-		// innn := strings.TrimSpace(string(mix))
-
-		// fmt.Println("innn data: ", innn)
-
-		var ki types.KeyInfo
-		// data, err := hex.DecodeString(innn)
-		// if err != nil {
-		// 	return err
-		// }
-
-		// fmt.Println("decode data: ", data)
-
-		if err := json.Unmarshal(mix, &ki); err != nil {
-			return err
+		var ki types.KeyInfo = types.KeyInfo{
+			Type:       types.KTSecp256k1,
+			PrivateKey: mix,
 		}
+
+		fmt.Println()
+		fmt.Printf("import ki: %+v\n", ki)
 
 		addr, err := api.WalletImport(ctx, &ki)
 		if err != nil {
