@@ -438,9 +438,6 @@ var walletGenerateMnemonic = &cli.Command{
 	Action: func(cctx *cli.Context) error {
 		_ = ReqContext(cctx)
 
-		// entropy, _ := bip39.NewEntropy(256)
-		// mnemonic, _ := bip39.NewMnemonic(entropy)
-
 		mnemonic, err := hdwallet.NewMnemonic(hdwallet.Mnemonic24)
 		if err != nil {
 			return err
