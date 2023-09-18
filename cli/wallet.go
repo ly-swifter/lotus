@@ -3,6 +3,7 @@ package cli
 import (
 	"bufio"
 	"bytes"
+	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -506,10 +507,17 @@ var walletImportMnemonic = &cli.Command{
 			}
 		}
 
-		mix, err := mixUp(private)
-		if err != nil {
-			return err
-		}
+		fmt.Println()
+		fmt.Println("private: ", private)
+
+		mix := shuffleBytes(private)
+		fmt.Println()
+		fmt.Println("mix: ", mix)
+
+		unmix := unshuffleBytes(mix)
+
+		fmt.Println("unmix: ", unmix)
+		fmt.Println()
 
 		var ki types.KeyInfo = types.KeyInfo{
 			Type:       types.KTSecp256k1,
@@ -535,9 +543,61 @@ var walletImportMnemonic = &cli.Command{
 	},
 }
 
-func mixUp(origin []byte) ([]byte, error) {
-	// var mixupGap = 7
-	return origin, nil
+var key = "liuyonghhh"
+
+func generateArrayFromKey(key string) [32]int {
+	if len(key) != 10 {
+		panic("Key must be 10 characters long")
+	}
+
+	hash := sha256.Sum256([]byte(key))
+	var numbers [32]int
+	var isUsed [32]bool
+
+	for i, v := range hash {
+		modValue := int(v & 0b011111)
+
+		// Ensure the value is unique
+		for isUsed[modValue] {
+			modValue = (modValue + 1) & 0b011111
+		}
+
+		numbers[i] = modValue
+		isUsed[modValue] = true
+	}
+
+	fmt.Println()
+	fmt.Println("numbers: ", numbers)
+	fmt.Println()
+
+	return numbers
+}
+
+func shuffleBytes(input []byte) []byte {
+	// if len(input) != 32 {
+	// 	panic("Input length must be 32 bytes")
+	// }
+
+	// output := make([]byte, 32)
+	// for i, pos := range generateArrayFromKey(key) {
+	// 	output[i] = input[pos]
+	// }
+	// return output
+
+	return input
+}
+
+func unshuffleBytes(input []byte) []byte {
+	// if len(input) != 32 {
+	// 	panic("Input length must be 32 bytes")
+	// }
+
+	// output := make([]byte, 32)
+	// for i, pos := range generateArrayFromKey(key) {
+	// 	output[pos] = input[i]
+	// }
+	// return output
+	return input
 }
 
 var walletSign = &cli.Command{
