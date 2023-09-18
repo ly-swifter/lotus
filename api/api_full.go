@@ -67,6 +67,10 @@ type FullNode interface {
 	Common
 	Net
 
+	ActorWithdrawBalance(ctx context.Context, maddr address.Address, amount abi.TokenAmount) (cid.Cid, error) //perm:admin
+
+	BeneficiaryWithdrawBalance(ctx context.Context, maddr address.Address, amount abi.TokenAmount) (cid.Cid, error) //perm:admin
+
 	// MethodGroup: Chain
 	// The Chain method group contains methods for interacting with the
 	// blockchain, but that do not require any form of state computation.

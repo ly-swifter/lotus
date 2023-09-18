@@ -11,6 +11,8 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/llifezou/hdwallet"
+	"github.com/tyler-smith/go-bip39"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/term"
 	"golang.org/x/xerrors"
@@ -24,11 +26,9 @@ import (
 	"github.com/filecoin-project/lotus/build"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/filecoin-project/lotus/lib/tablewriter"
-	"github.com/llifezou/hdwallet"
-	"github.com/tyler-smith/go-bip39"
 )
 
-var walletCmd = &cli.Command{
+var WalletCmd = &cli.Command{
 	Name:  "wallet",
 	Usage: "Manage wallet",
 	Subcommands: []*cli.Command{

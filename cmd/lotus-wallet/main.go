@@ -47,23 +47,15 @@ func main() {
 	local := []*cli.Command{
 		runCmd,
 		getApiKeyCmd,
+		lcli.WalletCmd,
+		lcli.ActorWithdrawCmd,
 	}
 
 	app := &cli.App{
-		Name:    "lotus-wallet",
-		Usage:   "Basic external wallet",
-		Version: build.UserVersion(),
-		Description: `
-lotus-wallet provides a remote wallet service for lotus.
-
-To configure your lotus node to use a remote wallet:
-* Run 'lotus-wallet get-api-key' to generate API key
-* Start lotus-wallet using 'lotus-wallet run' (see --help for additional flags)
-* Edit lotus config (~/.lotus/config.toml)
-  * Find the '[Wallet]' section
-  * Set 'RemoteBackend' to '[api key]:http://[wallet ip]:[wallet port]'
-    (the default port is 1777)
-* Start (or restart) the lotus daemon`,
+		Name:        "lotus-wallet",
+		Usage:       "Basic external wallet",
+		Version:     build.UserVersion(),
+		Description: "lotus-wallet provides a remote wallet service for lotus.",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    FlagWalletRepo,

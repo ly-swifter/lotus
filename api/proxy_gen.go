@@ -132,6 +132,10 @@ type FullNodeStruct struct {
 }
 
 type FullNodeMethods struct {
+	ActorWithdrawBalance func(p0 context.Context, p1 address.Address, p2 abi.TokenAmount) (cid.Cid, error) `perm:"admin"`
+
+	BeneficiaryWithdrawBalance func(p0 context.Context, p1 address.Address, p2 abi.TokenAmount) (cid.Cid, error) `perm:"admin"`
+
 	ChainBlockstoreInfo func(p0 context.Context) (map[string]interface{}, error) `perm:"read"`
 
 	ChainCheckBlockstore func(p0 context.Context) error `perm:"admin"`
@@ -1451,6 +1455,28 @@ func (s *EthSubscriberStruct) EthSubscription(p0 context.Context, p1 jsonrpc.Raw
 
 func (s *EthSubscriberStub) EthSubscription(p0 context.Context, p1 jsonrpc.RawParams) error {
 	return ErrNotSupported
+}
+
+func (s *FullNodeStruct) ActorWithdrawBalance(p0 context.Context, p1 address.Address, p2 abi.TokenAmount) (cid.Cid, error) {
+	if s.Internal.ActorWithdrawBalance == nil {
+		return *new(cid.Cid), ErrNotSupported
+	}
+	return s.Internal.ActorWithdrawBalance(p0, p1, p2)
+}
+
+func (s *FullNodeStub) ActorWithdrawBalance(p0 context.Context, p1 address.Address, p2 abi.TokenAmount) (cid.Cid, error) {
+	return *new(cid.Cid), ErrNotSupported
+}
+
+func (s *FullNodeStruct) BeneficiaryWithdrawBalance(p0 context.Context, p1 address.Address, p2 abi.TokenAmount) (cid.Cid, error) {
+	if s.Internal.BeneficiaryWithdrawBalance == nil {
+		return *new(cid.Cid), ErrNotSupported
+	}
+	return s.Internal.BeneficiaryWithdrawBalance(p0, p1, p2)
+}
+
+func (s *FullNodeStub) BeneficiaryWithdrawBalance(p0 context.Context, p1 address.Address, p2 abi.TokenAmount) (cid.Cid, error) {
+	return *new(cid.Cid), ErrNotSupported
 }
 
 func (s *FullNodeStruct) ChainBlockstoreInfo(p0 context.Context) (map[string]interface{}, error) {

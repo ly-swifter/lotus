@@ -67,6 +67,21 @@ func (m *MockFullNode) EXPECT() *MockFullNodeMockRecorder {
 	return m.recorder
 }
 
+// ActorWithdrawBalance mocks base method.
+func (m *MockFullNode) ActorWithdrawBalance(arg0 context.Context, arg1 address.Address, arg2 big.Int) (cid.Cid, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ActorWithdrawBalance", arg0, arg1, arg2)
+	ret0, _ := ret[0].(cid.Cid)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ActorWithdrawBalance indicates an expected call of ActorWithdrawBalance.
+func (mr *MockFullNodeMockRecorder) ActorWithdrawBalance(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ActorWithdrawBalance", reflect.TypeOf((*MockFullNode)(nil).ActorWithdrawBalance), arg0, arg1, arg2)
+}
+
 // AuthNew mocks base method.
 func (m *MockFullNode) AuthNew(arg0 context.Context, arg1 []auth.Permission) ([]byte, error) {
 	m.ctrl.T.Helper()
@@ -95,6 +110,21 @@ func (m *MockFullNode) AuthVerify(arg0 context.Context, arg1 string) ([]auth.Per
 func (mr *MockFullNodeMockRecorder) AuthVerify(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthVerify", reflect.TypeOf((*MockFullNode)(nil).AuthVerify), arg0, arg1)
+}
+
+// BeneficiaryWithdrawBalance mocks base method.
+func (m *MockFullNode) BeneficiaryWithdrawBalance(arg0 context.Context, arg1 address.Address, arg2 big.Int) (cid.Cid, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BeneficiaryWithdrawBalance", arg0, arg1, arg2)
+	ret0, _ := ret[0].(cid.Cid)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// BeneficiaryWithdrawBalance indicates an expected call of BeneficiaryWithdrawBalance.
+func (mr *MockFullNodeMockRecorder) BeneficiaryWithdrawBalance(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BeneficiaryWithdrawBalance", reflect.TypeOf((*MockFullNode)(nil).BeneficiaryWithdrawBalance), arg0, arg1, arg2)
 }
 
 // ChainBlockstoreInfo mocks base method.

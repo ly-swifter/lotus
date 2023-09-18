@@ -5,9 +5,13 @@
   * [Session](#Session)
   * [Shutdown](#Shutdown)
   * [Version](#Version)
+* [Actor](#Actor)
+  * [ActorWithdrawBalance](#ActorWithdrawBalance)
 * [Auth](#Auth)
   * [AuthNew](#AuthNew)
   * [AuthVerify](#AuthVerify)
+* [Beneficiary](#Beneficiary)
+  * [BeneficiaryWithdrawBalance](#BeneficiaryWithdrawBalance)
 * [Chain](#Chain)
   * [ChainBlockstoreInfo](#ChainBlockstoreInfo)
   * [ChainCheckBlockstore](#ChainCheckBlockstore)
@@ -370,6 +374,29 @@ Response:
 }
 ```
 
+## Actor
+
+
+### ActorWithdrawBalance
+
+
+Perms: admin
+
+Inputs:
+```json
+[
+  "f01234",
+  "0"
+]
+```
+
+Response:
+```json
+{
+  "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
+}
+```
+
 ## Auth
 
 
@@ -406,6 +433,29 @@ Response:
 [
   "write"
 ]
+```
+
+## Beneficiary
+
+
+### BeneficiaryWithdrawBalance
+
+
+Perms: admin
+
+Inputs:
+```json
+[
+  "f01234",
+  "0"
+]
+```
+
+Response:
+```json
+{
+  "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
+}
 ```
 
 ## Chain

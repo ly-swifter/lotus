@@ -68,7 +68,7 @@ var CommonCommands = []*cli.Command{
 
 var Commands = []*cli.Command{
 	WithCategory("basic", sendCmd),
-	WithCategory("basic", walletCmd),
+	WithCategory("basic", WalletCmd),
 	WithCategory("basic", infoCmd),
 	WithCategory("basic", clientCmd),
 	WithCategory("basic", multisigCmd),
