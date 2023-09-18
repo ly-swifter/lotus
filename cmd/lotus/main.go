@@ -30,7 +30,7 @@ func main() {
 
 	local := []*cli.Command{
 		DaemonCmd,
-		backupCmd,
+		// backupCmd,
 		configCmd,
 	}
 	if AdvanceBlockCmd != nil {

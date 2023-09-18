@@ -29,7 +29,6 @@ import (
 	"gopkg.in/cheggaaa/pb.v1"
 
 	"github.com/filecoin-project/go-jsonrpc"
-	"github.com/filecoin-project/go-paramfetch"
 
 	lapi "github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/build"
@@ -132,7 +131,6 @@ var DaemonCmd = &cli.Command{
 		&cli.BoolFlag{
 			Name:  "lite",
 			Usage: "start lotus in lite mode",
-			Value: true,
 		},
 		&cli.StringFlag{
 			Name:  "pprof",
@@ -245,11 +243,11 @@ var DaemonCmd = &cli.Command{
 		}
 		freshRepo := err != repo.ErrRepoExists
 
-		if !isLite {
-			if err := paramfetch.GetParams(lcli.ReqContext(cctx), build.ParametersJSON(), build.SrsJSON(), 0); err != nil {
-				return xerrors.Errorf("fetching proof parameters: %w", err)
-			}
-		}
+		// if !isLite {
+		// 	if err := paramfetch.GetParams(lcli.ReqContext(cctx), build.ParametersJSON(), build.SrsJSON(), 0); err != nil {
+		// 		return xerrors.Errorf("fetching proof parameters: %w", err)
+		// 	}
+		// }
 
 		var genBytes []byte
 		if cctx.String("genesis") != "" {
