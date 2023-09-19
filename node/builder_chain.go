@@ -7,6 +7,7 @@ import (
 	"go.uber.org/fx"
 	"golang.org/x/xerrors"
 
+	"github.com/filecoin-project/go-fil-markets/discovery"
 	discoveryimpl "github.com/filecoin-project/go-fil-markets/discovery/impl"
 	"github.com/filecoin-project/go-fil-markets/retrievalmarket"
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
@@ -20,6 +21,7 @@ import (
 	"github.com/filecoin-project/lotus/chain/exchange"
 	"github.com/filecoin-project/lotus/chain/gen/slashfilter"
 	"github.com/filecoin-project/lotus/chain/index"
+	"github.com/filecoin-project/lotus/chain/market"
 	"github.com/filecoin-project/lotus/chain/messagepool"
 	"github.com/filecoin-project/lotus/chain/messagesigner"
 	"github.com/filecoin-project/lotus/chain/stmgr"
@@ -31,6 +33,8 @@ import (
 	"github.com/filecoin-project/lotus/chain/wallet/remotewallet"
 	raftcns "github.com/filecoin-project/lotus/lib/consensus/raft"
 	"github.com/filecoin-project/lotus/lib/peermgr"
+	"github.com/filecoin-project/lotus/markets/retrievaladapter"
+	"github.com/filecoin-project/lotus/markets/storageadapter"
 	"github.com/filecoin-project/lotus/node/config"
 	"github.com/filecoin-project/lotus/node/hello"
 	"github.com/filecoin-project/lotus/node/impl"
@@ -122,19 +126,19 @@ var ChainNode = Options(
 	Override(new(*discoveryimpl.Local), modules.NewLocalDiscovery),
 
 	// Markets (retrieval)
-	// Override(new(discovery.PeerResolver), modules.RetrievalResolver),
-	// Override(new(retrievalmarket.BlockstoreAccessor), modules.RetrievalBlockstoreAccessor),
-	// Override(new(retrievalmarket.RetrievalClient), modules.RetrievalClient(false)),
-	// Override(new(dtypes.ClientDataTransfer), modules.NewClientGraphsyncDataTransfer),
+	Override(new(discovery.PeerResolver), modules.RetrievalResolver),
+	Override(new(retrievalmarket.BlockstoreAccessor), modules.RetrievalBlockstoreAccessor),
+	Override(new(retrievalmarket.RetrievalClient), modules.RetrievalClient(false)),
+	Override(new(dtypes.ClientDataTransfer), modules.NewClientGraphsyncDataTransfer),
 
 	// Markets (storage)
-	// Override(new(*market.FundManager), market.NewFundManager),
-	// Override(new(dtypes.ClientDatastore), modules.NewClientDatastore),
-	// Override(new(storagemarket.BlockstoreAccessor), modules.StorageBlockstoreAccessor),
-	// Override(new(*retrievaladapter.APIBlockstoreAccessor), retrievaladapter.NewAPIBlockstoreAdapter),
-	// Override(new(storagemarket.StorageClient), modules.StorageClient),
-	// Override(new(storagemarket.StorageClientNode), storageadapter.NewClientNodeAdapter),
-	// Override(HandleMigrateClientFundsKey, modules.HandleMigrateClientFunds),
+	Override(new(*market.FundManager), market.NewFundManager),
+	Override(new(dtypes.ClientDatastore), modules.NewClientDatastore),
+	Override(new(storagemarket.BlockstoreAccessor), modules.StorageBlockstoreAccessor),
+	Override(new(*retrievaladapter.APIBlockstoreAccessor), retrievaladapter.NewAPIBlockstoreAdapter),
+	Override(new(storagemarket.StorageClient), modules.StorageClient),
+	Override(new(storagemarket.StorageClientNode), storageadapter.NewClientNodeAdapter),
+	Override(HandleMigrateClientFundsKey, modules.HandleMigrateClientFunds),
 
 	Override(new(*full.GasPriceCache), full.NewGasPriceCache),
 
