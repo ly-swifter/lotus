@@ -454,6 +454,11 @@ var walletImportMnemonic = &cli.Command{
 	Usage:     "import mnemonic words",
 	ArgsUsage: "[<path> (optional, will read from stdin if omitted)]",
 	Flags: []cli.Flag{
+		&cli.StringFlag{
+			Name:  "password",
+			Usage: "this is the 10 characters password for shuffling the origin private key",
+			Value: "liuyonghhh",
+		},
 		&cli.BoolFlag{
 			Name:  "as-default",
 			Usage: "import the given key as your new default key",
@@ -510,11 +515,11 @@ var walletImportMnemonic = &cli.Command{
 		fmt.Println()
 		fmt.Println("private: ", private)
 
-		mix := shuffleBytes(private)
+		mix := shuffleBytes(private, cctx.String("password"))
 		fmt.Println()
 		fmt.Println("mix: ", mix)
 
-		unmix := unshuffleBytes(mix)
+		unmix := unshuffleBytes(mix, cctx.String("password"))
 
 		fmt.Println("unmix: ", unmix)
 		fmt.Println()
@@ -542,8 +547,6 @@ var walletImportMnemonic = &cli.Command{
 		return nil
 	},
 }
-
-var key = "liuyonghhh"
 
 func generateArrayFromKey(key string) [32]int {
 	if len(key) != 10 {
@@ -573,7 +576,7 @@ func generateArrayFromKey(key string) [32]int {
 	return numbers
 }
 
-func shuffleBytes(input []byte) []byte {
+func shuffleBytes(input []byte, key string) []byte {
 	if len(input) != 32 {
 		panic("Input length must be 32 bytes")
 	}
@@ -587,7 +590,7 @@ func shuffleBytes(input []byte) []byte {
 	// return input
 }
 
-func unshuffleBytes(input []byte) []byte {
+func unshuffleBytes(input []byte, key string) []byte {
 	if len(input) != 32 {
 		panic("Input length must be 32 bytes")
 	}
