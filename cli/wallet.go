@@ -574,30 +574,31 @@ func generateArrayFromKey(key string) [32]int {
 }
 
 func shuffleBytes(input []byte) []byte {
-	// if len(input) != 32 {
-	// 	panic("Input length must be 32 bytes")
-	// }
+	if len(input) != 32 {
+		panic("Input length must be 32 bytes")
+	}
 
-	// output := make([]byte, 32)
-	// for i, pos := range generateArrayFromKey(key) {
-	// 	output[i] = input[pos]
-	// }
-	// return output
+	output := make([]byte, 32)
+	for i, pos := range generateArrayFromKey(key) {
+		output[i] = input[pos]
+	}
+	return output
 
-	return input
+	// return input
 }
 
 func unshuffleBytes(input []byte) []byte {
-	// if len(input) != 32 {
-	// 	panic("Input length must be 32 bytes")
-	// }
+	if len(input) != 32 {
+		panic("Input length must be 32 bytes")
+	}
 
-	// output := make([]byte, 32)
-	// for i, pos := range generateArrayFromKey(key) {
-	// 	output[pos] = input[i]
-	// }
-	// return output
-	return input
+	output := make([]byte, 32)
+	for i, pos := range generateArrayFromKey(key) {
+		output[pos] = input[i]
+	}
+	return output
+
+	// return input
 }
 
 var walletSign = &cli.Command{
