@@ -164,7 +164,7 @@ func NewSyncer(params SyncerParams) (*chain.Syncer, error) {
 
 	lc.Append(fx.Hook{
 		OnStart: func(_ context.Context) error {
-			syncer.Start()
+			// syncer.Start()
 			return nil
 		},
 		OnStop: func(_ context.Context) error {
