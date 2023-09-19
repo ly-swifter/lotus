@@ -457,7 +457,7 @@ var walletImportMnemonic = &cli.Command{
 		&cli.StringFlag{
 			Name:  "password",
 			Usage: "this is the 10 characters password for shuffling the origin private key",
-			Value: "liuyonghhh",
+			Value: "",
 		},
 		&cli.BoolFlag{
 			Name:  "as-default",
@@ -519,9 +519,9 @@ var walletImportMnemonic = &cli.Command{
 		fmt.Println()
 		fmt.Println("mix: ", mix)
 
-		unmix := unshuffleBytes(mix, cctx.String("password"))
+		// unmix := unshuffleBytes(mix, cctx.String("password"))
 
-		fmt.Println("unmix: ", unmix)
+		// fmt.Println("unmix: ", unmix)
 		fmt.Println()
 
 		var ki types.KeyInfo = types.KeyInfo{
@@ -577,17 +577,19 @@ func generateArrayFromKey(key string) [32]int {
 }
 
 func shuffleBytes(input []byte, key string) []byte {
-	if len(input) != 32 {
-		panic("Input length must be 32 bytes")
-	}
+	if len(key) != 10 {
+		return input
+	} else {
+		if len(input) != 32 {
+			panic("Input length must be 32 bytes")
+		}
 
-	output := make([]byte, 32)
-	for i, pos := range generateArrayFromKey(key) {
-		output[i] = input[pos]
+		output := make([]byte, 32)
+		for i, pos := range generateArrayFromKey(key) {
+			output[i] = input[pos]
+		}
+		return output
 	}
-	return output
-
-	// return input
 }
 
 func unshuffleBytes(input []byte, key string) []byte {
