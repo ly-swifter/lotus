@@ -168,7 +168,7 @@ func NewSyncer(params SyncerParams) (*chain.Syncer, error) {
 			return nil
 		},
 		OnStop: func(_ context.Context) error {
-			syncer.Stop()
+			// syncer.Stop()
 			return nil
 		},
 	})
