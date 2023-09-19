@@ -199,6 +199,12 @@ lotus-wallet: $(BUILD_DEPS)
 .PHONY: lotus-wallet
 BINS+=lotus-wallet
 
+offline-wallet: $(BUILD_DEPS)
+	rm -f offline-wallet
+	$(GOCC) build $(GOFLAGS) -o offline-wallet ./cmd/offline-wallet
+.PHONY: offline-wallet
+BINS+=offline-wallet
+
 lotus-keygen:
 	rm -f lotus-keygen
 	$(GOCC) build -o lotus-keygen ./cmd/lotus-keygen

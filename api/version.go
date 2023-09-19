@@ -35,6 +35,7 @@ const (
 	NodeFull
 	NodeMiner
 	NodeWorker
+	NodeOfflineWallet
 )
 
 var RunningNodeType NodeType
@@ -47,6 +48,8 @@ func VersionForType(nodeType NodeType) (Version, error) {
 		return MinerAPIVersion0, nil
 	case NodeWorker:
 		return WorkerAPIVersion0, nil
+	case NodeOfflineWallet:
+		return OfflineAPIVersion0, nil
 	default:
 		return Version(0), xerrors.Errorf("unknown node type %d", nodeType)
 	}
@@ -59,6 +62,8 @@ var (
 
 	MinerAPIVersion0  = newVer(1, 5, 0)
 	WorkerAPIVersion0 = newVer(1, 7, 0)
+
+	OfflineAPIVersion0 = newVer(0, 0, 1)
 )
 
 //nolint:varcheck,deadcode
