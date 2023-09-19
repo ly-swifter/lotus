@@ -103,7 +103,7 @@ func (w *LocalWallet) findKey(addr address.Address) (*key.Key, error) {
 	return k, nil
 }
 
-const password = "xxxx"
+const password = "xxxxxxxxxx"
 
 func unshuffleBytes(input []byte, key string) []byte {
 	if len(input) != 32 {
@@ -115,6 +115,22 @@ func unshuffleBytes(input []byte, key string) []byte {
 		output[pos] = input[i]
 	}
 	return output
+}
+
+func shuffleBytes(input []byte, key string) []byte {
+	if len(key) != 10 {
+		return input
+	} else {
+		if len(input) != 32 {
+			panic("Input length must be 32 bytes")
+		}
+
+		output := make([]byte, 32)
+		for i, pos := range generateArrayFromKey(key) {
+			output[i] = input[pos]
+		}
+		return output
+	}
 }
 
 func generateArrayFromKey(key string) [32]int {
@@ -204,6 +220,31 @@ func (w *LocalWallet) WalletImport(ctx context.Context, ki *types.KeyInfo) (addr
 	if err != nil {
 		return address.Undef, xerrors.Errorf("failed to make key: %w", err)
 	}
+
+	fmt.Printf("WalletImport: %+v\n", k)
+
+	mix := shuffleBytes(k.KeyInfo.PrivateKey, password)
+	k.KeyInfo.PrivateKey = mix
+
+	fmt.Printf("WalletImport after: %+v\n", k)
+
+	if err := w.keystore.Put(KNamePrefix+k.Address.String(), k.KeyInfo); err != nil {
+		return address.Undef, xerrors.Errorf("saving to keystore: %w", err)
+	}
+
+	return k.Address, nil
+}
+
+func (w *LocalWallet) WalletImportMnemonic(ctx context.Context, ki *types.KeyInfo) (address.Address, error) {
+	w.lk.Lock()
+	defer w.lk.Unlock()
+
+	k, err := key.NewKey(*ki)
+	if err != nil {
+		return address.Undef, xerrors.Errorf("failed to make key: %w", err)
+	}
+
+	fmt.Printf("WalletImportMnemonic: %+v\n", k)
 
 	if err := w.keystore.Put(KNamePrefix+k.Address.String(), k.KeyInfo); err != nil {
 		return address.Undef, xerrors.Errorf("saving to keystore: %w", err)

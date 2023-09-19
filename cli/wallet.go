@@ -454,11 +454,11 @@ var walletImportMnemonic = &cli.Command{
 	Usage:     "import mnemonic words",
 	ArgsUsage: "[<path> (optional, will read from stdin if omitted)]",
 	Flags: []cli.Flag{
-		&cli.StringFlag{
-			Name:  "password",
-			Usage: "this is the 10 characters password for shuffling the origin private key",
-			Value: "",
-		},
+		// &cli.StringFlag{
+		// 	Name:  "password",
+		// 	Usage: "this is the 10 characters password for shuffling the origin private key",
+		// 	Value: "",
+		// },
 		&cli.BoolFlag{
 			Name:  "as-default",
 			Usage: "import the given key as your new default key",
@@ -515,24 +515,41 @@ var walletImportMnemonic = &cli.Command{
 		fmt.Println()
 		fmt.Println("private: ", private)
 
-		mix := shuffleBytes(private, cctx.String("password"))
-		fmt.Println()
-		fmt.Println("mix: ", mix)
+		var oriKi types.KeyInfo = types.KeyInfo{
+			Type:       types.KTSecp256k1,
+			PrivateKey: private,
+		}
+
+		// pubKey, err := sigs.ToPublic(ActSigType(oriKi.Type), oriKi.PrivateKey)
+		// if err != nil {
+		// 	return err
+		// }
+
+		// addr, err := address.NewSecp256k1Address(pubKey)
+		// if err != nil {
+		// 	return err
+		// }
+
+		// fmt.Println()
+		// fmt.Println("addr: ", addr)
+
+		// mix := shuffleBytes(private, cctx.String("password"))
+		// fmt.Println()
+		// fmt.Println("mix: ", mix)
 
 		// unmix := unshuffleBytes(mix, cctx.String("password"))
-
 		// fmt.Println("unmix: ", unmix)
 		fmt.Println()
 
-		var ki types.KeyInfo = types.KeyInfo{
-			Type:       types.KTSecp256k1,
-			PrivateKey: mix,
-		}
+		// var ki types.KeyInfo = types.KeyInfo{
+		// 	Type:       types.KTSecp256k1,
+		// 	PrivateKey: mix,
+		// }
 
-		fmt.Println()
-		fmt.Printf("import ki: %+v\n", ki)
+		// fmt.Println()
+		// fmt.Printf("import ki: %+v\n", oriKi)
 
-		addr, err := api.WalletImport(ctx, &ki)
+		addr, err := api.WalletImport(ctx, &oriKi)
 		if err != nil {
 			return err
 		}
@@ -546,6 +563,19 @@ var walletImportMnemonic = &cli.Command{
 		fmt.Printf("imported key %s successfully!\n", addr)
 		return nil
 	},
+}
+
+func ActSigType(typ types.KeyType) crypto.SigType {
+	switch typ {
+	case types.KTBLS:
+		return crypto.SigTypeBLS
+	case types.KTSecp256k1:
+		return crypto.SigTypeSecp256k1
+	case types.KTDelegated:
+		return crypto.SigTypeDelegated
+	default:
+		return crypto.SigTypeUnknown
+	}
 }
 
 func generateArrayFromKey(key string) [32]int {
