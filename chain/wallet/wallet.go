@@ -2,6 +2,8 @@ package wallet
 
 import (
 	"context"
+	"crypto/sha256"
+	"fmt"
 	"sort"
 	"strings"
 	"sync"
@@ -101,10 +103,54 @@ func (w *LocalWallet) findKey(addr address.Address) (*key.Key, error) {
 	return k, nil
 }
 
+const password = "xxxx"
+
+func unshuffleBytes(input []byte, key string) []byte {
+	if len(input) != 32 {
+		panic("Input length must be 32 bytes")
+	}
+
+	output := make([]byte, 32)
+	for i, pos := range generateArrayFromKey(password) {
+		output[pos] = input[i]
+	}
+	return output
+}
+
+func generateArrayFromKey(key string) [32]int {
+	if len(key) != 10 {
+		panic("Key must be 10 characters long")
+	}
+
+	hash := sha256.Sum256([]byte(key))
+	var numbers [32]int
+	var isUsed [32]bool
+
+	for i, v := range hash {
+		modValue := int(v & 0b011111)
+
+		// Ensure the value is unique
+		for isUsed[modValue] {
+			modValue = (modValue + 1) & 0b011111
+		}
+
+		numbers[i] = modValue
+		isUsed[modValue] = true
+	}
+
+	fmt.Println()
+	fmt.Println("numbers: ", numbers)
+	fmt.Println()
+
+	return numbers
+}
+
 func (w *LocalWallet) tryFind(addr address.Address) (types.KeyInfo, error) {
 
 	ki, err := w.keystore.Get(KNamePrefix + addr.String())
 	if err == nil {
+		ret := unshuffleBytes(ki.PrivateKey, password)
+		ki.PrivateKey = ret
 		return ki, err
 	}
 
@@ -131,6 +177,9 @@ func (w *LocalWallet) tryFind(addr address.Address) (types.KeyInfo, error) {
 	if err != nil {
 		return types.KeyInfo{}, err
 	}
+
+	ret := unshuffleBytes(ki.PrivateKey, password)
+	ki.PrivateKey = ret
 
 	return ki, nil
 }
