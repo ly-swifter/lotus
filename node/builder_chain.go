@@ -161,7 +161,7 @@ var ChainNode = Options(
 		Override(new(full.StateModuleAPI), From(new(full.StateModule))),
 		Override(new(stmgr.StateManagerAPI), From(new(*stmgr.StateManager))),
 
-		Override(RunHelloKey, modules.RunHello),
+		// Override(RunHelloKey, modules.RunHello),
 		// Override(RunChainExchangeKey, modules.RunChainExchange),
 		Override(RunPeerMgrKey, modules.RunPeerMgr),
 		// Override(HandleIncomingMessagesKey, modules.HandleIncomingMessages),
