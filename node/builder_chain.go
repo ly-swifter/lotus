@@ -38,6 +38,8 @@ import (
 	"github.com/filecoin-project/lotus/node/modules"
 	"github.com/filecoin-project/lotus/node/modules/dtypes"
 	"github.com/filecoin-project/lotus/node/repo"
+	"github.com/filecoin-project/lotus/paychmgr"
+	"github.com/filecoin-project/lotus/paychmgr/settler"
 	"github.com/filecoin-project/lotus/storage/sealer/ffiwrapper"
 	"github.com/filecoin-project/lotus/storage/sealer/storiface"
 )
@@ -110,11 +112,11 @@ var ChainNode = Options(
 	Override(new(api.Wallet), From(new(wallet.MultiWallet))),
 
 	// Service: Payment channels
-	// Override(new(paychmgr.PaychAPI), From(new(modules.PaychAPI))),
-	// Override(new(*paychmgr.Store), modules.NewPaychStore),
-	// Override(new(*paychmgr.Manager), modules.NewManager),
-	// Override(HandlePaymentChannelManagerKey, modules.HandlePaychManager),
-	// Override(SettlePaymentChannelsKey, settler.SettlePaymentChannels),
+	Override(new(paychmgr.PaychAPI), From(new(modules.PaychAPI))),
+	Override(new(*paychmgr.Store), modules.NewPaychStore),
+	Override(new(*paychmgr.Manager), modules.NewManager),
+	Override(HandlePaymentChannelManagerKey, modules.HandlePaychManager),
+	Override(SettlePaymentChannelsKey, settler.SettlePaymentChannels),
 
 	// Markets (common)
 	Override(new(*discoveryimpl.Local), modules.NewLocalDiscovery),
